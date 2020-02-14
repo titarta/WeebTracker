@@ -172,75 +172,75 @@ def popupmsg(msg, link, count):
     popup.mainloop()
 
 
-#time.sleep(180)
-#while True:
-#time.sleep(600)
-#with open("info.csv", newline='') as csv_file:
-csv_info = pd.read_csv("info.csv", dtype={'nextChapter': object})
-csv_header = csv_info.columns
+time.sleep(180)
+while True:
 
-rowNumber = 0
-for row in csv_info.values:
-    #get csv info
-    name = row[0]
-    website = row[1]
-    link = row[2]
-    chapter = int(row[4]) if math.modf(float(row[4]))[0] == 0 else row[4]
-    msg = str(row[3])
-    tracking = str(row[5]) == "True"
-    if(not tracking):
-        continue
-    is_new_chapter = False
-    atleast_one_new_chapter = False
-    start_chapter = chapter
-    new_chapter = -1
-    msg_new_chapter = -1
-    true_link = ""
-    msg_link = ""
+    csv_info = pd.read_csv("info.csv", dtype={'nextChapter': object})
+    csv_header = csv_info.columns
 
-    count = -1
-    #check if there is a new manga
-    while(True):
-        if website == "wuxia":
-            is_new_chapter, new_chapter, true_link = wuxiaScript(link, chapter)
-        elif website == "mangadex":
-            is_new_chapter, new_chapter, true_link = mangadexScript(link, chapter)
-        elif website == "leviatan":
-            is_new_chapter, new_chapter, true_link = leviatanScript(link, chapter)
-        elif website == "mangakakalot":
-            is_new_chapter, new_chapter, true_link = mangakakalotScript(link, chapter)
-        elif website == "webtoons":
-            is_new_chapter, new_chapter, true_link = webtoonsScript(link, chapter)
-        else:
+    rowNumber = 0
+    for row in csv_info.values:
+        #get csv info
+        name = row[0]
+        website = row[1]
+        link = row[2]
+        chapter = int(row[4]) if math.modf(float(row[4]))[0] == 0 else row[4]
+        msg = str(row[3])
+        tracking = str(row[5]) == "True"
+        if(not tracking):
             continue
+        is_new_chapter = False
+        atleast_one_new_chapter = False
+        start_chapter = chapter
+        new_chapter = -1
+        msg_new_chapter = -1
+        true_link = ""
+        msg_link = ""
 
-        if(not is_new_chapter):
-            break
+        count = -1
+        #check if there is a new manga
+        while(True):
+            if website == "wuxia":
+                is_new_chapter, new_chapter, true_link = wuxiaScript(link, chapter)
+            elif website == "mangadex":
+                is_new_chapter, new_chapter, true_link = mangadexScript(link, chapter)
+            elif website == "leviatan":
+                is_new_chapter, new_chapter, true_link = leviatanScript(link, chapter)
+            elif website == "mangakakalot":
+                is_new_chapter, new_chapter, true_link = mangakakalotScript(link, chapter)
+            elif website == "webtoons":
+                is_new_chapter, new_chapter, true_link = webtoonsScript(link, chapter)
+            else:
+                continue
+
+            if(not is_new_chapter):
+                break
+            
+            chapter = new_chapter
+            count += 1
+            if count == 0:
+                msg_new_chapter = new_chapter
+                msg_link = true_link
+                atleast_one_new_chapter = True 
+                if website == "mangadex" or website == "leviatan" or website == "mangakakalot":
+                    count = float(new_chapter) - float(start_chapter)
         
-        chapter = new_chapter
-        count += 1
-        if count == 0:
-            msg_new_chapter = new_chapter
-            msg_link = true_link
-            atleast_one_new_chapter = True 
-            if website == "mangadex" or website == "leviatan" or website == "mangakakalot":
-                count = float(new_chapter) - float(start_chapter)
-    
-    if(atleast_one_new_chapter):
-        if math.modf(float(new_chapter))[0] == 0:
-            csv_info["nextChapter"][rowNumber] = str(int(new_chapter))
-        else:
-            csv_info["nextChapter"][rowNumber] = str(new_chapter)
-        
+        if(atleast_one_new_chapter):
+            if math.modf(float(new_chapter))[0] == 0:
+                csv_info["nextChapter"][rowNumber] = str(int(new_chapter))
+            else:
+                csv_info["nextChapter"][rowNumber] = str(new_chapter)
+            
 
-    #message
-    if atleast_one_new_chapter:
-        if website == "wuxia":
-            msg_new_chapter -= 1
-        msg = msg.replace("###", str(msg_new_chapter), -1)
-        popupmsg(msg, msg_link, int(count - 1) if math.modf(count)[0] == 0 else count - 1)
+        #message
+        if atleast_one_new_chapter:
+            if website == "wuxia":
+                msg_new_chapter -= 1
+            msg = msg.replace("###", str(msg_new_chapter), -1)
+            popupmsg(msg, msg_link, int(count - 1) if math.modf(count)[0] == 0 else count - 1)
 
-    rowNumber += 1
+        rowNumber += 1
 
 
-csv_info.to_csv("info.csv", index=False)
+    csv_info.to_csv("info.csv", index=False)
+    time.sleep(600)
