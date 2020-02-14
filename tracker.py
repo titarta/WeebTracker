@@ -33,7 +33,6 @@ def wuxiaScript(link, chapter_number):
     next_chapter_number = int(chapter_number) + 1
     return True, next_chapter_number, url
 
-    
 
 def mangadexScript(link, chapter_number):
     try:
@@ -49,10 +48,12 @@ def mangadexScript(link, chapter_number):
         flag = ""
         try:
             flag = soup.select("#content > div.edit.tab-content > div > div:nth-child(" + str(row_number) + ") > div > div > div.chapter-list-flag.col-auto.text-center.order-lg-4 > span")
-        except:
+        except:                 
             return False, chapter_number, link
 
+        print(flag)
         if str(flag) == "[]":
+            #print(link)
             return False, chapter_number, link
 
         if row_number > 30 or (re.search("title=\"English\"", str(flag)) is not None):
@@ -62,7 +63,7 @@ def mangadexScript(link, chapter_number):
     
     last_chapter_element = soup.select(
         "#content > div.edit.tab-content > div > div:nth-child(" + str(row_number) + ") > div > div > div.col.col-lg-5.row.no-gutters.align-items-center.flex-nowrap.text-truncate.pr-1.order-lg-2 > a"
-    )
+    )    #content > div.edit.tab-content > div > div:nth-child(3)> div > div > div.chapter-list-flag.col-auto.text-center.order-lg-4 > span
 
     last_chapter_element_trimmed = re.search("Ch\. \d{1,4}(\.\d)?", str(last_chapter_element))
     last_chapter_number = str(last_chapter_element_trimmed.group(0))[4:]
@@ -73,7 +74,6 @@ def mangadexScript(link, chapter_number):
     else:
         return False, chapter_number, link
     
-
 
 def leviatanScript(link, chapter_number):
     try:
@@ -100,6 +100,7 @@ def leviatanScript(link, chapter_number):
     else:
         return False, chapter_number, link
 
+
 def mangakakalotScript(link, chapter_number):
     try:
         data_extracted = requests.get(link)
@@ -118,12 +119,39 @@ def mangakakalotScript(link, chapter_number):
 
     last_chapter_element_trimmed = re.search("Chapter \d{1,4}(\.\d)?", str(last_chapter_element))
     last_chapter_number = str(last_chapter_element_trimmed.group(0))[8:]
-    print(last_chapter_element)
     if last_chapter_number != str(chapter_number):
         url = str(re.search("href=\"[^\"]*\"", str(last_chapter_element)).group(0)[6:-1])
         return True, last_chapter_number, url
     else:
         return False, chapter_number, link
+
+
+def webtoonsScript(link, chapter_number):
+    try:
+        data_extracted = requests.get(link)
+    except:
+        return False, chapter_number, link
+    if data_extracted.status_code != 200:
+        return False, chapter_number, link
+    soup = BeautifulSoup(data_extracted.text, 'html.parser')
+
+    last_chapter_element = ""
+
+    try:
+        last_chapter_element = soup.select("#_listUl > li:nth-child(1) > a > span.tx")
+        last_chapter_url_element = soup.select("#_listUl > li:nth-child(1) > a")
+    except:
+        return False, chapter_number, link
+
+    last_chapter_element_trimmed = re.search("#\d{1,4}", str(last_chapter_element))
+    last_chapter_number = str(last_chapter_element_trimmed.group(0))[1:]
+    if last_chapter_number != str(chapter_number):
+        url = str(re.search("href=\"[^\"]*\"", str(last_chapter_url_element)).group(0)[6:-1]).replace("amp;", "")
+        return True, last_chapter_number, url
+    else:
+        return False, chapter_number, link
+
+
 
 def openBrowser(link, popup):
     webbrowser.open(link)
@@ -181,6 +209,8 @@ for row in csv_info.values:
             is_new_chapter, new_chapter, true_link = leviatanScript(link, chapter)
         elif website == "mangakakalot":
             is_new_chapter, new_chapter, true_link = mangakakalotScript(link, chapter)
+        elif website == "webtoons":
+            is_new_chapter, new_chapter, true_link = webtoonsScript(link, chapter)
         else:
             continue
 
