@@ -51,9 +51,7 @@ def mangadexScript(link, chapter_number):
         except:                 
             return False, chapter_number, link
 
-        print(flag)
         if str(flag) == "[]":
-            #print(link)
             return False, chapter_number, link
 
         if row_number > 30 or (re.search("title=\"English\"", str(flag)) is not None):
@@ -136,12 +134,14 @@ def webtoonsScript(link, chapter_number):
     soup = BeautifulSoup(data_extracted.text, 'html.parser')
 
     last_chapter_element = ""
+    last_chapter_url_element = ""
 
     try:
         last_chapter_element = soup.select("#_listUl > li:nth-child(1) > a > span.tx")
         last_chapter_url_element = soup.select("#_listUl > li:nth-child(1) > a")
     except:
         return False, chapter_number, link
+    print(last_chapter_element)
 
     last_chapter_element_trimmed = re.search("#\d{1,4}", str(last_chapter_element))
     last_chapter_number = str(last_chapter_element_trimmed.group(0))[1:]
@@ -172,7 +172,11 @@ def popupmsg(msg, link, count):
     popup.mainloop()
 
 
-time.sleep(180)
+csv_intervals_info = pd.read_csv("timeIntervals.csv")
+startUpTime = csv_intervals_info.values[0][0]
+timeInterval = csv_intervals_info.values[0][1]
+
+time.sleep(int(startUpTime))
 while True:
 
     csv_info = pd.read_csv("info.csv", dtype={'nextChapter': object})
@@ -196,6 +200,7 @@ while True:
         msg_new_chapter = -1
         true_link = ""
         msg_link = ""
+        print(name)
 
         count = -1
         #check if there is a new manga
@@ -243,4 +248,4 @@ while True:
 
 
     csv_info.to_csv("info.csv", index=False)
-    time.sleep(600)
+    time.sleep(int(timeInterval))
